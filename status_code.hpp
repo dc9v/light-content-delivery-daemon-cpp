@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-namespace LightTransfer
+namespace LightContentsDelivery
 {
   class Status
   {
@@ -80,7 +80,7 @@ namespace LightTransfer
     Unknown
   };
 
-  const std::map<Lcdd::StatusCode, Lcdd::Status> StatusCodeMap =
+  const std::map<StatusCode, Status> StatusCodeMap =
       {
           {StatusCode::Continue, Status(100, "Continue")},
           {StatusCode::Switching_protocols, Status(101, "Switching protocols")},
@@ -147,7 +147,7 @@ namespace LightTransfer
           {StatusCode::Network_Authentication_Required, Status(511, "Network authentication required")},
           {StatusCode::Unknown, Status(0, "Unknown")}};
 
-  std::string StatusCodeToFulString(Lcdd::StatusCode statusCode)
+  std::string StatusCodeToFulString(StatusCode statusCode)
   {
     auto res = StatusCodeMap.find(statusCode);
 
@@ -163,7 +163,7 @@ namespace LightTransfer
     return "0 Unknown";
   }
 
-  std::string StatusCodeToString(Lcdd::StatusCode statusCode)
+  std::string StatusCodeToString(StatusCode statusCode)
   {
     auto res = StatusCodeMap.find(statusCode);
 
@@ -175,7 +175,7 @@ namespace LightTransfer
     return "Unknown";
   }
 
-  int StatusCodeToInt(Lcdd::StatusCode statusCode)
+  int StatusCodeToInt(StatusCode statusCode)
   {
     auto res = StatusCodeMap.find(statusCode);
 
