@@ -8,4 +8,4 @@ install_manifest.txt
 test/
 compile_commands.json
 *.cmake
-*.ghc
+*.gch
