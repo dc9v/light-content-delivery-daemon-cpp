@@ -12,6 +12,14 @@
 #include <unordered_map>
 
 using namespace boost;
+
+/**
+ * LightContentsDelivery HTTP Server
+ *
+ * @author TAEGYUN,KO <taegyun.ko@weinwork.com>
+ * @date 2021-09-21
+ */
+
 namespace LightContentsDelivery {
 
 typedef boost::asio::detail::socket_type SocketType;
@@ -117,13 +125,6 @@ template <SocketType> class HTTPServerBase {
 		});
 	};
 };
-
-/**
- * LightContentsDelivery HTTP Server
- *
- * @author TAEGYUN,KO <kotaegyun@weinwork.com>
- * @date 2021-09-21
- */
 
 template <> class HTTPServer<class Socket> : public HTTPServerBase<SocketType> {
 	public:
