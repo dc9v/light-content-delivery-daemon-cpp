@@ -20,133 +20,179 @@ using namespace boost;
  * @date 2021-09-21
  */
 
-namespace LightContentsDelivery {
+namespace LightContentsDelivery
+{
+static const int DEFAULT_PORT = 9099;
+static const int DEFAULT_THREAD_POOL_SIZE = 10;
+static const int DEFAULT_TIME_OUT_REQUEST = 30;
+static const int DEFAULT_TIME_OUT_CONTENT = 30;
 
-typedef boost::asio::detail::socket_type SocketType;
 typedef boost::asio::ip::tcp::socket Socket;
+typedef boost::asio::detail::socket_type SocketType;
 
-template <class SocketType> class HTTPServerBase;
-
-class Request;
-class Response;
-class Content;
+class HTTPServer;
+class HTTPServerBase;
 
 std::shared_ptr<boost::asio::io_service> ioService;
 std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor;
-std::vector<std::thread> thread;
+std::vector<std::thread> threadPool;
 
-class Configure {
-	public:
-	int port;
-	std::string address;
-
-	int threadPoolSize = 10;
-	int timeoutRequest = 10;
-	int timeoutContent = 50;
-
-	Configure(int _port) { port = _port; }
+class Configure
+{
+  public:
+    std::string address = "";
+    int port = LightContentsDelivery::DEFAULT_PORT;
+    int threadPoolSize = LightContentsDelivery::DEFAULT_THREAD_POOL_SIZE;
+    int timeoutRequest = LightContentsDelivery::DEFAULT_TIME_OUT_REQUEST;
+    int timeoutContent = LightContentsDelivery::DEFAULT_TIME_OUT_CONTENT;
 };
 
-template <SocketType> class HTTPServerBase {
-	public:
-	Configure configure;
-	HTTPServerBase() { }
-	virtual ~HTTPServerBase() { }
+class HTTPServerBase
+{
+    std::shared_ptr<boost::asio::io_service> ioService;
+    std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor;
+    class Content;
+    class Request;
+    class Response;
 
-	std::shared_ptr<boost::asio::io_service> ioService;
-	std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor;
+    void onError(std::shared_ptr<typename HTTPServerBase::Request> request, boost::system::error_code &errorCode)
+    {
+        ;
+    }
 
-	virtual void listen()
-	{
-		boost::asio::ip::tcp::endpoint endPoint;
+    class Content : public std::istream
+    {
+      private:
+        boost::asio::streambuf &streamBuffer;
 
-		if (!ioService) {
-			ioService = std::make_shared<boost::asio::io_service>();
-		}
+      public:
+        Content(boost::asio::streambuf &streamBuffer) : std::istream(&streamBuffer), streamBuffer(streamBuffer)
+        {
+        }
+    };
 
-		if (ioService->stopped()) {
-			ioService->reset();
-		}
+    class Request
+    {
+      private:
+        Content content;
+        boost::asio::streambuf streamBuffer;
 
-		if (configure.address.size() > 0) {
-			endPoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(configure.address), configure.port);
-		} else {
-			endPoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), configure.port);
-		}
+      public:
+        Request(const Socket &socket) : content(streamBuffer)
+        {
+        }
+    };
 
-		if (!acceptor) {
-			acceptor = std::unique_ptr<boost::asio::ip::tcp::acceptor>(new boost::asio::ip::tcp::acceptor(*ioService));
-		}
+    class Response : std::ostream
+    {
+      private:
+        boost::asio::streambuf streamBuffer;
 
-		acceptor->open(endPoint.protocol());
-		acceptor->set_option(boost::asio::socket_base::reuse_address(true));
-		acceptor->bind(endPoint);
-		acceptor->listen();
-	};
+      public:
+        Response(const Socket &socket)
+        {
+        }
+    };
 
-	class Content : std::istream {
-		private:
-		boost::asio::streambuf& streamBuffer;
+  public:
+    Configure configure;
+    virtual void listen()
+    {
+        boost::asio::ip::tcp::endpoint endPoint;
 
-		public:
-		Content() { }
-	};
+        if (!ioService)
+        {
+            ioService = std::make_shared<boost::asio::io_service>();
+        }
 
-	class Request {
-		private:
-		boost::asio::streambuf streamBuffer;
-	};
+        if (ioService->stopped())
+        {
+            ioService->reset();
+        }
 
-	class Response : std::ostream {
-		private:
-		boost::asio::streambuf streamBuffer;
+        if (configure.address.size() > 0)
+        {
+            endPoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(configure.address), configure.port);
+        }
+        else
+        {
+            endPoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), configure.port);
+        }
 
-		public:
-		Response() { }
-	};
+        if (!acceptor)
+        {
+            acceptor = std::unique_ptr<boost::asio::ip::tcp::acceptor>(new boost::asio::ip::tcp::acceptor(*ioService));
+        }
 
-	protected:
-	void requestRead() { }
-	void requesrParse() { }
-	void response() { }
+        acceptor->open(endPoint.protocol());
+        acceptor->set_option(boost::asio::socket_base::reuse_address(true));
+        acceptor->bind(endPoint);
+        acceptor->listen();
 
-	void accept()
-	{
-		auto socket = std::make_shared<Socket>(*ioService);
+        accept();
+        threadPool.clear();
 
-		acceptor->async_accept(*socket, [this, socket](const boost::system::error_code& errorCode) {
-			if (errorCode) {
-				onError(std::shared_ptr<Request>(new Request(*socket)), errorCode);
-			} else {
-				boost::asio::ip::tcp::no_delay option(true);
-				socket->set_option(option);
-				this->read_request_and_content(socket);
-			}
-		});
-	};
+        for (int c = 1; c < configure.threadPoolSize; c++)
+        {
+            threadPool.emplace_back([this]() { ioService->run(); });
+        }
+
+        for (std::thread &t : threadPool)
+        {
+            t.join();
+        }
+
+        ioService->run();
+    };
+
+  protected:
+    void requestGet(const std::shared_ptr<Socket> &socket)
+    {
+    }
+    void requesrParse()
+    {
+    }
+    void response()
+    {
+    }
+
+    virtual void accept()
+    {
+        auto socket = std::make_shared<Socket>(*ioService);
+
+        acceptor->async_accept(*socket, [this, socket](boost::system::error_code &errorCode) {
+            if (errorCode)
+            {
+                onError(std::shared_ptr<Request>(new Request(*socket)), errorCode);
+            }
+            else
+            {
+                boost::asio::ip::tcp::no_delay option(true);
+
+                socket->set_option(option);
+                this->requestGet(socket);
+            }
+        });
+    };
 };
 
-template <> class HTTPServer<class Socket> : public HTTPServerBase<SocketType> {
-	public:
-	HTTPServer()
-			: HTTPServerBase<Socket>::ServerBase(80)
-	{
-		/* read config file - yaml type	*/
-	}
+class HTTPServer : public HTTPServerBase
+{
+  public:
+    HTTPServer(int port = LightContentsDelivery::DEFAULT_PORT, int threadPoolSize = LightContentsDelivery::DEFAULT_THREAD_POOL_SIZE, int timeoutRequest = LightContentsDelivery::DEFAULT_TIME_OUT_REQUEST, int timeoutContent = LightContentsDelivery::DEFAULT_TIME_OUT_CONTENT)
+    {
+        configure.port = port;
+        configure.threadPoolSize = threadPoolSize;
+        configure.timeoutRequest = timeoutRequest;
+        configure.timeoutContent = timeoutContent;
 
-	HTTPServer(int _port, int _threadPoolSize = 1, int _timeoutRequest = 5, int _timeoutContent = 300)
-			: HTTPServerBase<Socket>::ServerBase(80)
-	{
-		configure.port = _port;
-		configure.threadPoolSize = _threadPoolSize;
-		configure.timeoutRequest = _timeoutRequest;
-		configure.timeoutContent = _timeoutContent;
-	}
+        HTTPServerBase::listen();
+    }
 
-	protected:
-	void accept()
-	{
-		// ...->async();
-	}
+  protected:
+    void accept()
+    {
+        // ...->async();
+    }
 };
-}
+} // namespace LightContentsDelivery
