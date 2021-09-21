@@ -20,7 +20,7 @@ light-content-delivery-daemon-cpp
 
 ### Todo
 1. HTTP status code (O)
-2. HTTP Server
+2. HTTP Server(pending...)
 3. Make scheme(GET Request)
 4. Make scheme(Post Request)
 ... etc
