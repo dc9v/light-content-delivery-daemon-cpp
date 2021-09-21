@@ -11,10 +11,11 @@ light-content-delivery-daemon-cpp
 
 
 ### Rules
-1. StandAlone.
-2. Be light
-3. Less functions, Essential functions.
-4. Simple and easy scheme, setting
+1. Ease code
+2. StandAlone.
+3. Be light
+4. Less functions, Essential functions.
+5. Simple and easy scheme
 
 
 
