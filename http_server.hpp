@@ -11,8 +11,6 @@
 #include <thread>
 #include <unordered_map>
 
-using namespace boost;
-
 /**
  * LightContentsDelivery HTTP Server
  *
