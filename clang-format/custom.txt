@@ -1,0 +1,46 @@
+-- clang-format, custom format
+-- @author TAEGYUN,KO <taegyun.ko@weinwork.com>
+
+BasedOnStyle: WebKit
+Language: Cpp
+ColumnLimit: 2000
+BreakBeforeBraces: Allman
+UseTab: Never
+TabWidth: 2
+
+AccessModifierOffset: -2
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: false
+AlignOperands: false
+AlignTrailingComments: false
+AllowAllConstructorInitializersOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: true
+AlwaysBreakTemplateDeclarations: No
+BinPackParameters: false
+BreakBeforeBinaryOperators: All
+BreakBeforeTernaryOperators: true
+BreakStringLiterals: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+Cpp11BracedListStyle: true
+DerivePointerAlignment: true
+ExperimentalAutoDetectBinPacking: false
+FixNamespaceComments: true
+IncludeBlocks: Regroup
+IndentCaseLabels: true
+IndentWrappedFunctionNames: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+NamespaceIndentation: All
+PointerAlignment: Right
+SortIncludes: true
+SortUsingDeclarations: true
+SpaceBeforeParens: Always
+SpaceInEmptyParentheses: true
+Standard: Cpp11
